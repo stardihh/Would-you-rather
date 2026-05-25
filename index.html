@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Would You Rather 💀</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#0a0a0a;--card:#111;--border:#1e1e1e;
+      --red:#e63946;--blue:#1d9bf0;--text:#f0f0f0;--muted:#555;
+    }
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:'Segoe UI',sans-serif;
+      min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;justify-content:flex-start;
+      padding:20px 16px 40px;
+    }
+
+    /* ── SCREENS ── */
+    .screen{display:none;width:100%;max-width:480px;animation:fadeIn .3s ease;}
+    .screen.active{display:flex;flex-direction:column;align-items:center;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── HOME ── */
+    .logo{font-size:3rem;margin-bottom:8px;}
+    h1{font-size:1.7rem;letter-spacing:1px;text-align:center;margin-bottom:6px;}
+    .tagline{color:var(--muted);font-size:0.82rem;text-align:center;margin-bottom:36px;}
+
+    .mode-cards{display:flex;flex-direction:column;gap:14px;width:100%;}
+    .mode-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:16px;padding:22px 20px;cursor:pointer;
+      transition:border-color .2s,transform .15s;
+      display:flex;align-items:center;gap:16px;
+    }
+    .mode-card:hover{border-color:var(--red);transform:scale(1.01);}
+    .mode-card:active{transform:scale(0.98);}
+    .mode-icon{font-size:2rem;flex-shrink:0;}
+    .mode-title{font-size:1rem;font-weight:700;margin-bottom:3px;}
+    .mode-desc{font-size:0.78rem;color:var(--muted);}
+
+    /* ── CATEGORY SELECT ── */
+    .back-btn{
+      align-self:flex-start;background:none;border:none;
+      color:var(--muted);font-size:0.85rem;cursor:pointer;
+      margin-bottom:20px;padding:4px 0;
+    }
+    .back-btn:hover{color:var(--text);}
+    .screen-title{font-size:1.2rem;font-weight:700;margin-bottom:6px;text-align:center;}
+    .screen-sub{font-size:0.78rem;color:var(--muted);margin-bottom:24px;text-align:center;}
+
+    .cat-grid{
+      display:grid;grid-template-columns:1fr 1fr;
+      gap:10px;width:100%;margin-bottom:24px;
+    }
+    .cat-btn{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px 10px;
+      text-align:center;cursor:pointer;
+      transition:border-color .2s,background .2s;
+      font-size:0.85rem;
+    }
+    .cat-btn .cat-icon{font-size:1.4rem;display:block;margin-bottom:5px;}
+    .cat-btn.selected{border-color:var(--red);background:#1a0a0c;}
+    .cat-btn:active{transform:scale(0.97);}
+
+    .start-btn{
+      width:100%;padding:16px;background:var(--red);
+      border:none;border-radius:12px;color:#fff;
+      font-size:1rem;font-weight:700;cursor:pointer;
+      transition:opacity .2s,transform .1s;
+    }
+    .start-btn:hover{opacity:.88;}
+    .start-btn:active{transform:scale(0.98);}
+    .start-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+    /* ── PLAYER NAME (2P) ── */
+    .name-inputs{display:flex;flex-direction:column;gap:12px;width:100%;margin-bottom:24px;}
+    .name-input-wrap{position:relative;}
+    .name-input-wrap span{
+      position:absolute;left:14px;top:50%;transform:translateY(-50%);
+      font-size:1.1rem;
+    }
+    .name-input-wrap input{
+      width:100%;background:var(--card);border:1px solid var(--border);
+      border-radius:10px;color:var(--text);padding:13px 14px 13px 42px;
+      font-size:0.95rem;outline:none;
+      transition:border-color .2s;
+    }
+    .name-input-wrap input:focus{border-color:var(--red);}
+
+    /* ── GAME SCREEN ── */
+    .progress-wrap{width:100%;margin-bottom:20px;}
+    .progress-info{
+      display:flex;justify-content:space-between;
+      font-size:0.75rem;color:var(--muted);margin-bottom:6px;
+    }
+    .progress-bar{
+      width:100%;height:4px;background:var(--border);border-radius:4px;overflow:hidden;
+    }
+    .progress-fill{
+      height:100%;background:var(--red);border-radius:4px;
+      transition:width .4s ease;
+    }
+
+    .player-turn{
+      font-size:0.78rem;color:var(--muted);
+      text-align:center;margin-bottom:12px;
+      min-height:20px;
+    }
+    .player-turn span{color:var(--text);font-weight:600;}
+
+    .category-tag{
+      font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;
+      color:var(--muted);text-align:center;margin-bottom:10px;
+    }
+
+    .question-text{
+      font-size:1.1rem;font-weight:700;text-align:center;
+      line-height:1.5;margin-bottom:28px;
+      min-height:60px;
+    }
+
+    .options{display:flex;flex-direction:column;gap:12px;width:100%;}
+
+    .option-btn{
+      width:100%;padding:18px 16px;
+      border:1px solid var(--border);border-radius:14px;
+      background:var(--card);color:var(--text);
+      font-size:0.95rem;font-weight:600;
+      cursor:pointer;text-align:left;
+      transition:border-color .2s,background .2s,transform .1s;
+      position:relative;overflow:hidden;
+    }
+    .option-btn:active{transform:scale(0.98);}
+    .option-btn.opt-a:hover{border-color:var(--red);}
+    .option-btn.opt-b:hover{border-color:var(--blue);}
+
+    /* result state */
+    .option-btn.chosen-a{border-color:var(--red);background:#1a0a0c;}
+    .option-btn.chosen-b{border-color:var(--blue);background:#0a1220;}
+    .option-btn.other-a{border-color:var(--red);background:#1a0a0c;opacity:.6;}
+    .option-btn.other-b{border-color:var(--blue);background:#0a1220;opacity:.6;}
+
+    .option-label{
+      font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;
+      margin-bottom:4px;opacity:.6;
+    }
+    .option-text{display:block;}
+
+    /* % bar inside button */
+    .pct-bar{
+      position:absolute;bottom:0;left:0;height:3px;
+      border-radius:0 0 14px 14px;
+      transition:width .6s ease;
+    }
+    .opt-a .pct-bar{background:var(--red);}
+    .opt-b .pct-bar{background:var(--blue);}
+    .pct-label{
+      display:none;font-size:0.75rem;margin-top:6px;opacity:.8;
+    }
+
+    .or-divider{
+      text-align:center;font-size:0.75rem;color:var(--muted);
+      font-weight:700;letter-spacing:2px;
+    }
+
+    .next-btn{
+      width:100%;margin-top:20px;padding:15px;
+      background:var(--red);border:none;border-radius:12px;
+      color:#fff;font-size:1rem;font-weight:700;
+      cursor:pointer;display:none;
+      transition:opacity .2s,transform .1s;
+    }
+    .next-btn.visible{display:block;}
+    .next-btn:hover{opacity:.88;}
+    .next-btn:active{transform:scale(0.98);}
+
+    /* ── RESULTS SCREEN ── */
+    .results-header{text-align:center;margin-bottom:28px;}
+    .results-header .trophy{font-size:3rem;margin-bottom:8px;}
+    .results-header h2{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+    .results-header p{font-size:0.82rem;color:var(--muted);}
+
+    /* solo results */
+    .solo-stats{
+      width:100%;background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:20px;margin-bottom:20px;
+      text-align:center;
+    }
+    .solo-stats .big-num{font-size:2.8rem;font-weight:900;color:var(--red);}
+    .solo-stats .big-label{font-size:0.8rem;color:var(--muted);margin-top:2px;}
+
+    /* 2P comparison */
+    .compare-list{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+    .compare-item{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px;
+    }
+    .compare-q{font-size:0.78rem;color:var(--muted);margin-bottom:8px;}
+    .compare-answers{display:flex;gap:8px;}
+    .compare-ans{
+      flex:1;border-radius:8px;padding:8px 10px;
+      font-size:0.8rem;font-weight:600;text-align:center;
+    }
+    .compare-ans.match{background:#0d2a0d;border:1px solid #2a6a2a;color:#6fcf6f;}
+    .compare-ans.diff-a{background:#1a0a0c;border:1px solid var(--red);color:var(--red);}
+    .compare-ans.diff-b{background:#0a1220;border:1px solid var(--blue);color:var(--blue);}
+    .compare-name{font-size:0.65rem;opacity:.6;margin-bottom:3px;}
+
+    .match-score{
+      width:100%;background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:20px;margin-bottom:20px;text-align:center;
+    }
+    .match-score .big-num{font-size:2.8rem;font-weight:900;}
+    .match-score .big-label{font-size:0.8rem;color:var(--muted);margin-top:2px;}
+    .match-score .verdict{
+      margin-top:12px;font-size:0.9rem;font-weight:600;
+      padding:8px 16px;border-radius:20px;display:inline-block;
+    }
+    .verdict-high{background:#0d2a0d;color:#6fcf6f;}
+    .verdict-mid{background:#1a1500;color:#f0c040;}
+    .verdict-low{background:#1a0a0c;color:var(--red);}
+
+    .play-again-btn{
+      width:100%;padding:15px;background:var(--red);
+      border:none;border-radius:12px;color:#fff;
+      font-size:1rem;font-weight:700;cursor:pointer;
+      margin-bottom:10px;transition:opacity .2s;
+    }
+    .play-again-btn:hover{opacity:.88;}
+    .home-btn{
+      width:100%;padding:13px;background:var(--card);
+      border:1px solid var(--border);border-radius:12px;color:var(--text);
+      font-size:0.9rem;font-weight:600;cursor:pointer;
+      transition:border-color .2s;
+    }
+    .home-btn:hover{border-color:var(--red);}
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div class="screen active" id="homeScreen">
+  <div class="logo">🤔</div>
+  <h1>Would You Rather</h1>
+  <p class="tagline">no right answers · only chaos · 15 rounds</p>
+
+  <div class="mode-cards">
+    <div class="mode-card" id="soloModeBtn">
+      <div class="mode-icon">🧍</div>
+      <div>
+        <div class="mode-title">Solo Mode</div>
+        <div class="mode-desc">Answer 15 questions. See what % of people agree with you.</div>
+      </div>
+    </div>
+    <div class="mode-card" id="duoModeBtn">
+      <div class="mode-icon">👥</div>
+      <div>
+        <div class="mode-title">2 Player Mode</div>
+        <div class="mode-desc">Take turns on the same phone. Find out how different you are.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CATEGORY SELECT ══════════════ -->
+<div class="screen" id="catScreen">
+  <button class="back-btn" id="catBack">← Back</button>
+  <div class="screen-title">Pick your categories</div>
+  <div class="screen-sub">Select at least one. More = more chaos.</div>
+
+  <div class="cat-grid" id="catGrid"></div>
+  <button class="start-btn" id="catStartBtn" disabled>Let's Go 🔥</button>
+</div>
+
+<!-- ══════════════ PLAYER NAMES (2P) ══════════════ -->
+<div class="screen" id="namesScreen">
+  <button class="back-btn" id="namesBack">← Back</button>
+  <div class="screen-title">Who's playing?</div>
+  <div class="screen-sub">Enter your names so we can roast you properly.</div>
+
+  <div class="name-inputs">
+    <div class="name-input-wrap">
+      <span>🔴</span>
+      <input type="text" id="p1name" placeholder="Player 1 name" maxlength="16"/>
+    </div>
+    <div class="name-input-wrap">
+      <span>🔵</span>
+      <input type="text" id="p2name" placeholder="Player 2 name" maxlength="16"/>
+    </div>
+  </div>
+  <button class="start-btn" id="namesStartBtn">Start Game 🎮</button>
+</div>
+
+<!-- ══════════════ GAME ══════════════ -->
+<div class="screen" id="gameScreen">
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="qCounter">Question 1 / 15</span>
+      <span id="catLabel"></span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="player-turn" id="playerTurn"></div>
+  <div class="category-tag" id="qCatTag"></div>
+  <div class="question-text" id="questionText">Loading...</div>
+
+  <div class="options">
+    <button class="option-btn opt-a" id="optA">
+      <div class="option-label">Option A</div>
+      <span class="option-text" id="optAText"></span>
+      <div class="pct-bar" id="pctBarA" style="width:0%"></div>
+      <div class="pct-label" id="pctLabelA"></div>
+    </button>
+    <div class="or-divider">— OR —</div>
+    <button class="option-btn opt-b" id="optB">
+      <div class="option-label">Option B</div>
+      <span class="option-text" id="optBText"></span>
+      <div class="pct-bar" id="pctBarB" style="width:0%"></div>
+      <div class="pct-label" id="pctLabelB"></div>
+    </button>
+  </div>
+
+  <button class="next-btn" id="nextBtn">Next →</button>
+</div>
+
+<!-- ══════════════ RESULTS ══════════════ -->
+<div class="screen" id="resultsScreen">
+  <div class="results-header">
+    <div class="trophy" id="trophyEmoji">🏆</div>
+    <h2 id="resultsTitle">Round Complete!</h2>
+    <p id="resultsSubtitle"></p>
+  </div>
+
+  <!-- solo stats -->
+  <div class="solo-stats" id="soloStats">
+    <div class="big-num" id="majorityCount">0</div>
+    <div class="big-label">times you picked the majority answer</div>
+  </div>
+
+  <!-- 2P match score -->
+  <div class="match-score" id="matchScore" style="display:none">
+    <div class="big-num" id="matchNum">0/15</div>
+    <div class="big-label">answers matched</div>
+    <div class="verdict" id="matchVerdict"></div>
+  </div>
+
+  <!-- 2P comparison list -->
+  <div class="compare-list" id="compareList" style="display:none"></div>
+
+  <button class="play-again-btn" id="playAgainBtn">Play Again 🔄</button>
+  <button class="home-btn" id="homeFromResults">← Home</button>
+</div>
+
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  QUESTION BANK
+// ══════════════════════════════════════════════════════════════
+const QUESTIONS = {
+  '🔥 Spicy': [
+    { q:'Would you rather…', a:'Ghost your best friend forever', b:'Never be able to say no to anyone' },
+    { q:'Would you rather…', a:'Have your search history made public', b:'Have your texts from the last year read aloud to your family' },
+    { q:'Would you rather…', a:'Be famous but hated', b:'Be unknown but loved by a few' },
+    { q:'Would you rather…', a:'Find out your whole life is a simulation', b:'Find out everyone around you is an NPC' },
+    { q:'Would you rather…', a:'Lose all your memories from the past 5 years', b:'Never be able to make new memories' },
+    { q:'Would you rather…', a:'Always say what you think out loud', b:'Never be able to speak again' },
+    { q:'Would you rather…', a:'Know the exact date you die', b:'Know the exact cause of your death' },
+  ],
+  '💀 Dark': [
+    { q:'Would you rather…', a:'Live in a world where everyone can read minds', b:'Live in a world where everyone is completely honest' },
+    { q:'Would you rather…', a:'Be the last person on Earth', b:'Be surrounded by people who hate you' },
+    { q:'Would you rather…', a:'Watch your most embarrassing moment on a loop forever', b:'Relive your worst day once a week' },
+    { q:'Would you rather…', a:'Know every lie ever told to you', b:'Never know any lies but always feel suspicious' },
+    { q:'Would you rather…', a:'Slowly turn into your parents', b:'Stay exactly who you are right now forever' },
+    { q:'Would you rather…', a:'Have everyone forget you exist', b:'Be remembered only for your worst moment' },
+    { q:'Would you rather…', a:'Live 200 years but be alone', b:'Live 30 years surrounded by people you love' },
+  ],
+  '💸 Money': [
+    { q:'Would you rather…', a:'Have ₹10 crore but can never leave your city', b:'Have ₹1 crore and total freedom to go anywhere' },
+    { q:'Would you rather…', a:'Be broke but doing work you love', b:'Be rich doing work you hate' },
+    { q:'Would you rather…', a:'Win a lottery but lose all your friends', b:'Stay broke but keep everyone you love' },
+    { q:'Would you rather…', a:'Have unlimited money but no free time', b:'Have unlimited free time but no money' },
+    { q:'Would you rather…', a:'Be the richest person in a poor country', b:'Be middle class in the richest country' },
+    { q:'Would you rather…', a:'Spend ₹5000 on one perfect meal', b:'Eat free food every day for a year but it\'s always the same' },
+    { q:'Would you rather…', a:'Never have to work again but be bored forever', b:'Work hard your whole life but feel fulfilled' },
+  ],
+  '💔 Love': [
+    { q:'Would you rather…', a:'Fall in love with someone who never loves you back', b:'Be loved deeply by someone you don\'t love' },
+    { q:'Would you rather…', a:'Be in a situationship forever', b:'Never date anyone ever' },
+    { q:'Would you rather…', a:'Have your crush find out you like them', b:'Never get a chance to tell them' },
+    { q:'Would you rather…', a:'Date someone your family hates', b:'Date someone your friends hate' },
+    { q:'Would you rather…', a:'Always be the one who cares more', b:'Always be the one who cares less' },
+    { q:'Would you rather…', a:'Get left on read by your crush', b:'Get rejected face to face' },
+    { q:'Would you rather…', a:'Be in a long distance relationship forever', b:'Be single forever' },
+  ],
+  '👥 Social': [
+    { q:'Would you rather…', a:'Have 10 close friends who are always busy', b:'Have 1 best friend who\'s always there' },
+    { q:'Would you rather…', a:'Be the most popular person in school but fake', b:'Be unpopular but completely real' },
+    { q:'Would you rather…', a:'Always be the funny one in the group', b:'Always be the smart one in the group' },
+    { q:'Would you rather…', a:'Have no social media forever', b:'Have social media but everyone can see your screen time' },
+    { q:'Would you rather…', a:'Be invited to everything but enjoy nothing', b:'Be invited to nothing but enjoy your own company' },
+    { q:'Would you rather…', a:'Have a friend group that roasts you constantly', b:'Have a friend group that never jokes around' },
+    { q:'Would you rather…', a:'Be the group chat admin forever', b:'Be permanently muted in every group chat' },
+  ],
+  '🧠 Superpowers': [
+    { q:'Would you rather…', a:'Be able to fly but only at walking speed', b:'Be able to teleport but only to places you\'ve been before' },
+    { q:'Would you rather…', a:'Have the ability to pause time but you age normally', b:'Live forever but time never stops' },
+    { q:'Would you rather…', a:'Read minds but can\'t turn it off', b:'Be invisible but only when no one is looking' },
+    { q:'Would you rather…', a:'Know every language but forget your own', b:'Speak only your language but everyone understands you' },
+    { q:'Would you rather…', a:'Have super strength but look completely normal', b:'Look incredibly strong but have zero strength' },
+    { q:'Would you rather…', a:'See 10 minutes into the future', b:'Change 10 minutes of your past once a day' },
+    { q:'Would you rather…', a:'Never need sleep', b:'Never need food or water' },
+  ],
+  '😂 Absurd': [
+    { q:'Would you rather…', a:'Every time you lie, a duck quacks loudly nearby', b:'Every time you\'re nervous, you bark like a dog' },
+    { q:'Would you rather…', a:'Have fingers as long as your legs', b:'Have legs as short as your fingers' },
+    { q:'Would you rather…', a:'Only be able to communicate in memes', b:'Only be able to speak in movie quotes' },
+    { q:'Would you rather…', a:'Sweat mayonnaise', b:'Have hair that smells like garlic' },
+    { q:'Would you rather…', a:'Fight 100 duck-sized horses', b:'Fight 1 horse-sized duck' },
+    { q:'Would you rather…', a:'Every song you hear is the same Bollywood song on loop', b:'Every movie you watch has the same ending' },
+    { q:'Would you rather…', a:'Have a laugh that sounds like a goat', b:'Sneeze glitter every time' },
+  ],
+};
+
+const CAT_KEYS = Object.keys(QUESTIONS);
+
+// Fake % data — feels real, adds up to 100
+function fakePct() {
+  const a = 30 + Math.floor(Math.random() * 41); // 30–70
+  return { a, b: 100 - a };
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════
+let mode = 'solo'; // 'solo' | 'duo'
+let selectedCats = new Set();
+let p1 = 'Player 1', p2 = 'Player 2';
+let gameQuestions = [];
+let currentQ = 0;
+let currentPlayer = 1; // 1 or 2 (duo only)
+let answers = []; // [{chosen:'a'|'b', pct:{a,b}}]
+let p1answers = [], p2answers = []; // duo
+
+// ══════════════════════════════════════════════════════════════
+//  SCREEN HELPERS
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BUILD CATEGORY GRID
+// ══════════════════════════════════════════════════════════════
+const catGrid = document.getElementById('catGrid');
+CAT_KEYS.forEach(key => {
+  const btn = document.createElement('div');
+  btn.className = 'cat-btn';
+  const [icon, ...rest] = key.split(' ');
+  btn.innerHTML = `<span class="cat-icon">${icon}</span>${rest.join(' ')}`;
+  btn.dataset.cat = key;
+  btn.addEventListener('click', () => {
+    if (selectedCats.has(key)) { selectedCats.delete(key); btn.classList.remove('selected'); }
+    else { selectedCats.add(key); btn.classList.add('selected'); }
+    document.getElementById('catStartBtn').disabled = selectedCats.size === 0;
+  });
+  catGrid.appendChild(btn);
+});
+
+// ══════════════════════════════════════════════════════════════
+//  HOME → CAT SELECT
+// ══════════════════════════════════════════════════════════════
+document.getElementById('soloModeBtn').addEventListener('click', () => {
+  mode = 'solo'; showScreen('catScreen');
+});
+document.getElementById('duoModeBtn').addEventListener('click', () => {
+  mode = 'duo'; showScreen('catScreen');
+});
+document.getElementById('catBack').addEventListener('click', () => showScreen('homeScreen'));
+
+document.getElementById('catStartBtn').addEventListener('click', () => {
+  if (mode === 'duo') { showScreen('namesScreen'); }
+  else { buildGame(); showScreen('gameScreen'); }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  NAMES → GAME (duo)
+// ══════════════════════════════════════════════════════════════
+document.getElementById('namesBack').addEventListener('click', () => showScreen('catScreen'));
+document.getElementById('namesStartBtn').addEventListener('click', () => {
+  p1 = document.getElementById('p1name').value.trim() || 'Player 1';
+  p2 = document.getElementById('p2name').value.trim() || 'Player 2';
+  buildGame();
+  showScreen('gameScreen');
+});
+
+// ══════════════════════════════════════════════════════════════
+//  BUILD GAME — pick 15 random questions from selected cats
+// ══════════════════════════════════════════════════════════════
+function buildGame() {
+  let pool = [];
+  selectedCats.forEach(cat => {
+    QUESTIONS[cat].forEach(q => pool.push({ ...q, cat }));
+  });
+  // shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  gameQuestions = pool.slice(0, 15);
+  currentQ = 0;
+  currentPlayer = 1;
+  answers = [];
+  p1answers = [];
+  p2answers = [];
+  renderQuestion();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER QUESTION
+// ══════════════════════════════════════════════════════════════
+function renderQuestion() {
+  const total = mode === 'duo' ? gameQuestions.length * 2 : gameQuestions.length;
+  const done  = mode === 'duo'
+    ? (currentQ * 2 + (currentPlayer === 2 ? 1 : 0))
+    : currentQ;
+
+  document.getElementById('qCounter').textContent =
+    `Question ${currentQ + 1} / ${gameQuestions.length}`;
+  document.getElementById('progressFill').style.width =
+    `${(done / total) * 100}%`;
+
+  const q = gameQuestions[currentQ];
+  document.getElementById('qCatTag').textContent = q.cat;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('optAText').textContent = q.a;
+  document.getElementById('optBText').textContent = q.b;
+
+  // player turn label
+  const turnEl = document.getElementById('playerTurn');
+  if (mode === 'duo') {
+    const name = currentPlayer === 1 ? p1 : p2;
+    const color = currentPlayer === 1 ? '#e63946' : '#1d9bf0';
+    turnEl.innerHTML = `<span style="color:${color}">${name}</span>'s turn`;
+  } else {
+    turnEl.textContent = '';
+  }
+
+  // reset button states
+  const optA = document.getElementById('optA');
+  const optB = document.getElementById('optB');
+  optA.className = 'option-btn opt-a';
+  optB.className = 'option-btn opt-b';
+  optA.disabled = false;
+  optB.disabled = false;
+  document.getElementById('pctBarA').style.width = '0%';
+  document.getElementById('pctBarB').style.width = '0%';
+  document.getElementById('pctLabelA').style.display = 'none';
+  document.getElementById('pctLabelB').style.display = 'none';
+  document.getElementById('nextBtn').classList.remove('visible');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HANDLE ANSWER
+// ══════════════════════════════════════════════════════════════
+function handleAnswer(chosen) {
+  const pct = fakePct();
+  const optA = document.getElementById('optA');
+  const optB = document.getElementById('optB');
+  optA.disabled = true;
+  optB.disabled = true;
+
+  if (mode === 'solo') {
+    answers.push({ chosen, pct });
+    optA.className = 'option-btn opt-a ' + (chosen === 'a' ? 'chosen-a' : 'other-a');
+    optB.className = 'option-btn opt-b ' + (chosen === 'b' ? 'chosen-b' : 'other-b');
+  } else {
+    if (currentPlayer === 1) p1answers.push(chosen);
+    else p2answers.push(chosen);
+    const chosenClass = chosen === 'a' ? 'chosen-a' : 'chosen-b';
+    const otherClass  = chosen === 'a' ? 'other-b'  : 'other-a';
+    optA.className = 'option-btn opt-a ' + (chosen === 'a' ? 'chosen-a' : 'other-a');
+    optB.className = 'option-btn opt-b ' + (chosen === 'b' ? 'chosen-b' : 'other-b');
+  }
+
+  // show % bars
+  setTimeout(() => {
+    const barA = document.getElementById('pctBarA');
+    const barB = document.getElementById('pctBarB');
+    const lblA = document.getElementById('pctLabelA');
+    const lblB = document.getElementById('pctLabelB');
+    barA.style.width = pct.a + '%';
+    barB.style.width = pct.b + '%';
+    lblA.textContent = pct.a + '% picked this';
+    lblB.textContent = pct.b + '% picked this';
+    lblA.style.display = 'block';
+    lblB.style.display = 'block';
+  }, 150);
+
+  // duo: after p1 answers, switch to p2 for same question
+  if (mode === 'duo' && currentPlayer === 1) {
+    setTimeout(() => {
+      currentPlayer = 2;
+      // hide answers, show next question state for p2
+      optA.className = 'option-btn opt-a';
+      optB.className = 'option-btn opt-b';
+      optA.disabled = false;
+      optB.disabled = false;
+      document.getElementById('pctBarA').style.width = '0%';
+      document.getElementById('pctBarB').style.width = '0%';
+      document.getElementById('pctLabelA').style.display = 'none';
+      document.getElementById('pctLabelB').style.display = 'none';
+      const name = p2;
+      document.getElementById('playerTurn').innerHTML =
+        `<span style="color:#1d9bf0">${name}</span>'s turn`;
+    }, 1200);
+    return;
+  }
+
+  document.getElementById('nextBtn').classList.add('visible');
+}
+
+document.getElementById('optA').addEventListener('click', () => handleAnswer('a'));
+document.getElementById('optB').addEventListener('click', () => handleAnswer('b'));
+
+// ══════════════════════════════════════════════════════════════
+//  NEXT QUESTION
+// ══════════════════════════════════════════════════════════════
+document.getElementById('nextBtn').addEventListener('click', () => {
+  currentQ++;
+  currentPlayer = 1;
+  if (currentQ >= gameQuestions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════════════════════════
+function showResults() {
+  showScreen('resultsScreen');
+
+  if (mode === 'solo') {
+    // count how many times user picked majority (pct.a >= 50 and chose a, etc.)
+    let majorityCount = 0;
+    answers.forEach(ans => {
+      if ((ans.chosen === 'a' && ans.pct.a >= 50) ||
+          (ans.chosen === 'b' && ans.pct.b >= 50)) majorityCount++;
+    });
+    document.getElementById('soloStats').style.display = 'block';
+    document.getElementById('matchScore').style.display = 'none';
+    document.getElementById('compareList').style.display = 'none';
+    document.getElementById('majorityCount').textContent = majorityCount + '/15';
+    document.getElementById('trophyEmoji').textContent = majorityCount >= 10 ? '🐑' : majorityCount >= 5 ? '😏' : '🦄';
+    document.getElementById('resultsTitle').textContent =
+      majorityCount >= 10 ? 'Basic. Very basic.' :
+      majorityCount >= 5  ? 'Somewhere in the middle' : 'You are built different 💀';
+    document.getElementById('resultsSubtitle').textContent =
+      `You agreed with the majority ${majorityCount} out of 15 times.`;
+
+  } else {
+    // duo
+    let matches = 0;
+    p1answers.forEach((a, i) => { if (a === p2answers[i]) matches++; });
+    const pct = Math.round((matches / gameQuestions.length) * 100);
+
+    document.getElementById('soloStats').style.display = 'none';
+    document.getElementById('matchScore').style.display = 'block';
+    document.getElementById('compareList').style.display = 'flex';
+
+    document.getElementById('matchNum').textContent = matches + '/' + gameQuestions.length;
+    document.getElementById('matchNum').style.color =
+      pct >= 70 ? '#6fcf6f' : pct >= 40 ? '#f0c040' : '#e63946';
+
+    const verdict = document.getElementById('matchVerdict');
+    if (pct >= 70) {
+      verdict.textContent = 'You two are basically the same person 👯';
+      verdict.className = 'verdict verdict-high';
+    } else if (pct >= 40) {
+      verdict.textContent = 'Decent match. Could be worse 🤷';
+      verdict.className = 'verdict verdict-mid';
+    } else {
+      verdict.textContent = 'How are you even friends 💀';
+      verdict.className = 'verdict verdict-low';
+    }
+
+    document.getElementById('trophyEmoji').textContent = pct >= 70 ? '💞' : pct >= 40 ? '🤝' : '💀';
+    document.getElementById('resultsTitle').textContent = `${p1} vs ${p2}`;
+    document.getElementById('resultsSubtitle').textContent = `${pct}% compatibility`;
+
+    // build comparison list
+    const list = document.getElementById('compareList');
+    list.innerHTML = '';
+    gameQuestions.forEach((q, i) => {
+      const a1 = p1answers[i], a2 = p2answers[i];
+      const matched = a1 === a2;
+      const item = document.createElement('div');
+      item.className = 'compare-item';
+      item.innerHTML = `
+        <div class="compare-q">${q.q.replace('…','')}: ${q.a} <em>vs</em> ${q.b}</div>
+        <div class="compare-answers">
+          <div class="compare-ans ${matched ? 'match' : 'diff-a'}">
+            <div class="compare-name">${p1}</div>
+            ${a1 === 'a' ? q.a : q.b}
+          </div>
+          <div class="compare-ans ${matched ? 'match' : 'diff-b'}">
+            <div class="compare-name">${p2}</div>
+            ${a2 === 'a' ? q.a : q.b}
+          </div>
+        </div>`;
+      list.appendChild(item);
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PLAY AGAIN / HOME
+// ══════════════════════════════════════════════════════════════
+document.getElementById('playAgainBtn').addEventListener('click', () => {
+  if (mode === 'duo') { showScreen('namesScreen'); }
+  else { buildGame(); showScreen('gameScreen'); }
+});
+document.getElementById('homeFromResults').addEventListener('click', () => {
+  selectedCats.clear();
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('catStartBtn').disabled = true;
+  showScreen('homeScreen');
+});
+</script>
+</body>
+</html>
